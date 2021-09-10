@@ -2,6 +2,7 @@ import React, { useMemo, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { useHistory } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import ListItem from '../../ui/list-item';
 import { useTransactionDisplayData } from '../../../hooks/useTransactionDisplayData';
 import { useI18nContext } from '../../../hooks/useI18nContext';
@@ -20,6 +21,10 @@ import { EDIT_GAS_MODES } from '../../../../shared/constants/gas';
 import EditGasPopover from '../edit-gas-popover';
 import { isBalanceSufficient } from '../../../pages/send/send.utils';
 import { getMaximumGasTotalInHexWei } from '../../../../shared/modules/gas.utils';
+import { useMetricEvent } from '../../../hooks/useMetricEvent';
+import { useIncrementedGasFees } from '../../../hooks/useIncrementedGasFees';
+import { getSelectedAccount } from '../../../selectors';
+import { getConversionRate } from '../../../ducks/metamask/metamask';
 
 export default function TransactionListItem({
   transactionGroup,
@@ -38,7 +43,6 @@ export default function TransactionListItem({
     initialTransaction: { id },
     primaryTransaction: { err, status },
   } = transactionGroup;
-
 
   const speedUpMetricsEvent = useMetricEvent({
     eventOpts: {
@@ -117,10 +121,11 @@ export default function TransactionListItem({
     setShowDetails((prev) => !prev);
   }, [isUnapproved, history, id]);
 
-  const cancelButton = useMemo(() => {
-    if (hasCancelled || !isPending || isUnapproved) {
-      return null;
-    }
+  const CancelButton = () => {
+    const customCancelGasSettings = useIncrementedGasFees(transactionGroup);
+    const selectedAccount = useSelector(getSelectedAccount);
+    const conversionRate = useSelector(getConversionRate);
+
     const hasEnoughCancelGas = isBalanceSufficient({
       amount: '0x0',
       gasTotal: getMaximumGasTotalInHexWei(customCancelGasSettings),
@@ -146,7 +151,7 @@ export default function TransactionListItem({
         <div>{btn}</div>
       </Tooltip>
     );
-  }, [isPending, t, isUnapproved, hasCancelled]);
+  };
 
   const speedUpButton = useMemo(() => {
     if (!shouldShowSpeedUp || !isPending || isUnapproved) {
@@ -162,7 +167,17 @@ export default function TransactionListItem({
         {hasCancelled ? t('speedUpCancellation') : t('speedUp')}
       </Button>
     );
-  }, [shouldShowSpeedUp, isUnapproved, t, isPending, hasCancelled]);
+  }, [
+    shouldShowSpeedUp,
+    isUnapproved,
+    t,
+    isPending,
+    hasCancelled,
+    retryTransaction,
+    cancelTransaction,
+  ]);
+
+  const showCancelButton = !hasCancelled && isPending && !isUnapproved;
 
   return (
     <>
@@ -213,7 +228,7 @@ export default function TransactionListItem({
       >
         <div className="transaction-list-item__pending-actions">
           {speedUpButton}
-          {cancelButton}
+          {showCancelButton && <CancelButton />}
         </div>
       </ListItem>
       {showDetails && (
@@ -230,7 +245,7 @@ export default function TransactionListItem({
           isEarliestNonce={isEarliestNonce}
           onCancel={cancelTransaction}
           showCancel={isPending && !hasCancelled}
-          cancelDisabled={!hasEnoughCancelGas}
+          // cancelDisabled={!hasEnoughCancelGas}
         />
       )}
       {showRetryEditGasPopover && (
