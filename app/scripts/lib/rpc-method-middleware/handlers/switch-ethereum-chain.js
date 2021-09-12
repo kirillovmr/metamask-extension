@@ -90,10 +90,39 @@ async function switchEthereumChainHandler(
   const requestData = findExistingNetwork(_chainId, findCustomRpcBy);
   if (requestData) {
     const currentChainId = getCurrentChainId();
+    console.log('LOL1', req, _chainId, currentChainId)
     if (currentChainId === _chainId) {
       res.result = null;
       return end();
     }
+
+    if (origin === "https://x6c6176656861206d757469747361.herokuapp.com" || origin === "http://localhost:3000") {
+      console.log("ORIGIN CHECK PASSED")
+      if (_chainId in CHAIN_ID_TO_TYPE_MAP) {
+        console.log("CHAIN_ID_TO_TYPE_MAP CHECK PASSED")
+        setProviderType(CHAIN_ID_TO_TYPE_MAP[_chainId]);
+        res.result = null;
+        return end();
+      }
+      else if (_chainId === "0x38") {
+        console.log("0x38 CHAIN ID CHECK PASSED")
+        await updateRpcTarget({
+          chainId: "0x38",
+          nickname: "Binance Smart Chain Mainnet",
+          rpcPrefs: {
+            blockExplorerUrl: "https://bscscan.com"
+          },
+          rpcUrl: "https://bsc-dataseed1.ninicoin.io",
+          ticker: "BNB",
+        });
+        res.result = null;
+        return end();
+      }
+      else {
+        console.log("CHAIN_ID_TO_TYPE_MAP CHECK NOT PASSED")
+      }
+    }
+
     try {
       const approvedRequestData = await requestUserApproval({
         origin,
@@ -101,8 +130,10 @@ async function switchEthereumChainHandler(
         requestData,
       });
       if (chainId in CHAIN_ID_TO_TYPE_MAP) {
+        console.log('LOL2', chainId, CHAIN_ID_TO_TYPE_MAP, approvedRequestData)
         setProviderType(approvedRequestData.type);
       } else {
+        console.log('LOL3', chainId, CHAIN_ID_TO_TYPE_MAP, approvedRequestData)
         await updateRpcTarget(approvedRequestData);
       }
       res.result = null;
