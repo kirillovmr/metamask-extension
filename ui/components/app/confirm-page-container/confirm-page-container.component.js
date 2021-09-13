@@ -153,7 +153,7 @@ export default class ConfirmPageContainer extends Component {
             />
           )}
         </ConfirmPageContainerHeader>
-        <div>
+        {/* <div>
           {showAddToAddressDialog && (
             <Dialog
               type="message"
@@ -163,7 +163,7 @@ export default class ConfirmPageContainer extends Component {
               {this.context.t('newAccountDetectedDialogMessage')}
             </Dialog>
           )}
-        </div>
+        </div> */}
         {contentComponent || (
           <ConfirmPageContainerContent
             action={action}
