@@ -310,6 +310,7 @@ export default class ConfirmTransactionBase extends Component {
       isFirefox,
     } = this.props;
     const { t } = this.context;
+    console.log("KEK", this.context)
 
     const renderTotalMaxAmount = () => {
       if (
@@ -892,6 +893,7 @@ export default class ConfirmTransactionBase extends Component {
 
   render() {
     const { t } = this.context;
+    console.log('KEK2', this)
     const {
       fromName,
       fromAddress,

@@ -676,6 +676,7 @@ export function updateTransaction(txData, dontShowLoadingIndicator) {
 }
 
 export function addUnapprovedTransaction(txParams, origin) {
+  console.log("QWE1", txParams, origin)
   log.debug('background.addUnapprovedTransaction');
 
   return () => {
