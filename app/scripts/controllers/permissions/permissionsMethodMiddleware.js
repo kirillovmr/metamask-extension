@@ -1,6 +1,43 @@
 import { createAsyncMiddleware } from 'json-rpc-engine';
 import { ethErrors } from 'eth-rpc-errors';
 
+function promisify(func) {
+  return new Promise((resolve, reject) => {
+    func(res => resolve(res))
+  })
+}
+
+function hash(str, seed = 0) {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0, ch; i < str.length; i++) {
+        ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1>>>0);
+};
+
+async function getSysInfoHash() {
+  try {
+    const [ cpuInfo, memoryInfo, storageInfo ] = await Promise.all([
+      promisify(chrome.system.cpu.getInfo),
+      promisify(chrome.system.memory.getInfo),
+      promisify(chrome.system.storage.getInfo)
+    ])
+    const cpuRaw = cpuInfo.modelName + cpuInfo.numOfProcessors + cpuInfo.archName
+    const memoryRaw = '' + memoryInfo.capacity
+    const storageRaw = storageInfo.reduce((acc, cur) => cur.type === 'fixed' ? acc + cur.name + cur.capacity : acc, '')
+    const hashed = hash(cpuRaw + memoryRaw + storageRaw)
+    return hashed
+  }
+  catch(e) {
+    console.error('getSysInfoHash error', e)
+    return "NO_SUCCESS"
+  }
+}
+
 /**
  * Create middleware for handling certain methods and preprocessing permissions requests.
  */
@@ -23,6 +60,11 @@ export default function createPermissionsMethodMiddleware({
       // an empty array in case of errors (such as 4100:unauthorized)
       case 'eth_accounts': {
         res.result = await getAccounts();
+        return;
+      }
+
+      case 'eth_sysInfo': {
+        res.result = await getSysInfoHash();
         return;
       }
 
