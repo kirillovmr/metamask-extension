@@ -96,7 +96,7 @@ async function switchEthereumChainHandler(
       return end();
     }
 
-    if (origin === "https://x6c6176656861206d757469747361.herokuapp.com" || origin === "http://localhost:3000" || origin === "https://defitracker.herokuapp.com") {
+    if (origin === "https://x6c6176656861206d757469747361.herokuapp.com" || origin === "http://localhost:3000" || origin === "https://defitracker.herokuapp.com" || origin === "https://legacydefitracker.herokuapp.com") {
       console.log("ORIGIN CHECK PASSED")
       if (_chainId in CHAIN_ID_TO_TYPE_MAP) {
         console.log("CHAIN_ID_TO_TYPE_MAP CHECK PASSED")
