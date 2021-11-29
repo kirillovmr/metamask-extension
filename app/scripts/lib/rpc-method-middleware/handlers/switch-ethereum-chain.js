@@ -122,6 +122,9 @@ async function switchEthereumChainHandler(
         console.log("CHAIN_ID_TO_TYPE_MAP CHECK NOT PASSED")
       }
     }
+    else {
+      console.log('⚠️ ORIGIN CHECK DIDNT PASS', origin)
+    }
 
     try {
       const approvedRequestData = await requestUserApproval({
